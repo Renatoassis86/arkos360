@@ -3,18 +3,23 @@ import { supabase } from './supabaseClient';
 import './App.css';
 
 const SECTIONS = [
-  { id: 'intelligence', label: 'Intelligence Command', active: true },
-  { id: 'dossier', label: 'Student Dossiers', active: false },
-  { id: 'financial', label: 'Financial Risk (Sponte)', active: false, status: 'In Development' },
-  { id: 'social', label: 'Social Engagement (Insta)', active: false, status: 'In Development' },
-  { id: 'whatsapp', label: 'Clinical Service (WA)', active: false, status: 'In Development' },
+  { id: 'intelligence', label: 'Comando de Inteligência', active: true },
+  { id: 'radiography', label: 'Radiografia Moodle', active: false },
+  { id: 'financial', label: 'Risco Financeiro (Sponte)', active: false, status: 'In Development' },
+  { id: 'social', label: 'Engajamento Social (Insta)', active: false, status: 'In Development' },
+  { id: 'whatsapp', label: 'Serviço Clínico (WA)', active: false, status: 'In Development' },
   { id: 'causal', label: 'Causal Uplift Engine', active: false, status: 'In Development' },
 ];
 
 function App() {
-  const [activeTab, setActiveTab] = useState('intelligence');
+  const [activeTab, setActiveTab] = useState('radiography');
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filtros de Hierarquia Moodle
+  const [filterMacro, setFilterMacro] = useState('');
+  const [filterModality, setFilterModality] = useState('');
+  const [filterDegree, setFilterDegree] = useState('');
 
   useEffect(() => {
     async function fetchStudents() {
@@ -138,7 +143,45 @@ function App() {
           </div>
         )}
 
-        {activeTab !== 'intelligence' && (
+        {activeTab === 'radiography' && (
+          <div className="view-radiography">
+             <div className="filters-panel" style={{display: 'flex', gap: '15px', marginBottom: '20px'}}>
+                <select value={filterMacro} onChange={e => {setFilterMacro(e.target.value); setFilterModality(''); setFilterDegree('');}} style={{padding: '10px', background: '#112240', color: '#CCD6F6', border: '1px solid #233554', borderRadius: '4px'}}>
+                  <option value="">Todas as Instituições (Macro)</option>
+                  {[...new Set(students.map(s => s.macro_category).filter(Boolean))].map(m => (
+                    <option key={m as string} value={m as string}>{m as string}</option>
+                  ))}
+                </select>
+                <select value={filterModality} onChange={e => {setFilterModality(e.target.value); setFilterDegree('');}} style={{padding: '10px', background: '#112240', color: '#CCD6F6', border: '1px solid #233554', borderRadius: '4px'}}>
+                  <option value="">Todas as Modalidades</option>
+                  {[...new Set(students.filter(s => !filterMacro || s.macro_category === filterMacro).map(s => s.modality).filter(Boolean))].map(m => (
+                    <option key={m as string} value={m as string}>{m as string}</option>
+                  ))}
+                </select>
+                <select value={filterDegree} onChange={e => setFilterDegree(e.target.value)} style={{padding: '10px', background: '#112240', color: '#CCD6F6', border: '1px solid #233554', borderRadius: '4px'}}>
+                  <option value="">Todos os Graus</option>
+                  {[...new Set(students.filter(s => (!filterMacro || s.macro_category === filterMacro) && (!filterModality || s.modality === filterModality)).map(s => s.degree).filter(Boolean))].map(m => (
+                    <option key={m as string} value={m as string}>{m as string}</option>
+                  ))}
+                </select>
+             </div>
+             <div className="dossier-grid">
+                {students.filter(s => (!filterMacro || s.macro_category === filterMacro) && (!filterModality || s.modality === filterModality) && (!filterDegree || s.degree === filterDegree)).map(student => (
+                  <div key={student.id} className="student-card">
+                    <h3 style={{fontSize: '1rem', color: '#00e5ff', margin: '0 0 5px 0'}}>{student.macro_category}</h3>
+                    <p style={{fontSize: '0.8rem', color: '#8892b0', margin: '0 0 15px 0'}}>{student.modality} {'>'} {student.degree}</p>
+                    <div style={{padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px'}}>
+                       <p style={{margin: '0 0 5px 0', fontSize: '0.8rem'}}><strong style={{color: '#64ffda'}}>Tag:</strong> {student.course_tag ? `[${student.course_tag}]` : 'Sem Tag'}</p>
+                       <p style={{margin: '0', fontSize: '0.85rem'}}><strong>Curso:</strong> {student.clean_course_name}</p>
+                    </div>
+                    <p style={{marginTop: '15px', fontSize: '0.75rem', color: '#8892b0'}}>Hash: {student.full_name_hash?.substring(0,8)}</p>
+                  </div>
+                ))}
+             </div>
+          </div>
+        )}
+
+        {activeTab !== 'intelligence' && activeTab !== 'radiography' && (
           <div className="placeholder-view">
             <div className="empty-state">
               <h2>Módulo em Desenvolvimento</h2>
