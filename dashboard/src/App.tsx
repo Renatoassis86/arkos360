@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css';
 
@@ -24,6 +24,9 @@ function App() {
         .order('moodle_last_access', { ascending: false })
         .limit(30);
 
+      if (error) {
+        console.error("Erro na leitura Supabase:", error);
+      }
       if (data) {
         setStudents(data);
       }
