@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import './App.css';
 
+// Título do TCC para a Hero Section
+const TCC_TITLE = "Predição de Evasão Estudantil em Instituições de Ensino Superior Privadas: Uma aplicação de machine learning com explicabilidade para apoio à decisão gerencial";
+
 const SECTIONS = [
   { id: 'intelligence', label: 'Comando de Inteligência', active: true },
   { id: 'radiography', label: 'Radiografia Moodle', active: false },
@@ -70,15 +73,20 @@ function App() {
       </aside>
 
       <main className="content">
-        <header className="main-header">
-          <div className="header-info">
-            <h1>{SECTIONS.find(s => s.id === activeTab)?.label}</h1>
-            <p className="subtitle">Visualização baseada no Valor em Risco e Engajamento Digital (SED)</p>
-          </div>
-          
-          <div className="system-status">
-            <div className="status-pill alive"><span className="dot"></span> Moodle: Online</div>
-            <div className="status-pill pending"><span className="dot"></span> Sponte: Pending</div>
+        <header className="main-header with-hero">
+          <div className="hero-section">
+            <img src="/hero_students.png" alt="University Students" className="hero-img" />
+            <div className="hero-overlay"></div>
+            <div className="hero-content">
+              <h1 className="tcc-main-title">{TCC_TITLE}</h1>
+              <div className="header-meta">
+                <p className="subtitle">Visualização baseada no Valor em Risco e Engajamento Digital (SED)</p>
+                <div className="system-status">
+                  <div className="status-pill alive"><span className="dot"></span> Moodle: Online</div>
+                  <div className="status-pill pending"><span className="dot"></span> Sponte: Pending</div>
+                </div>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -145,36 +153,71 @@ function App() {
 
         {activeTab === 'radiography' && (
           <div className="view-radiography">
-             <div className="filters-panel" style={{display: 'flex', gap: '15px', marginBottom: '20px'}}>
-                <select value={filterMacro} onChange={e => {setFilterMacro(e.target.value); setFilterModality(''); setFilterDegree('');}} style={{padding: '10px', background: '#112240', color: '#CCD6F6', border: '1px solid #233554', borderRadius: '4px'}}>
+             <div className="stats-bar">
+                <div className="stat-item">
+                  <span className="stat-label">Total Alunos</span>
+                  <span className="stat-value">{students.length}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Cursos Ativos</span>
+                  <span className="stat-value">{[...new Set(students.map(s => s.course_name))].length}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Engajamento Médio</span>
+                  <span className="stat-value">76%</span>
+                </div>
+             </div>
+
+             <div className="filters-panel">
+                <select value={filterMacro} onChange={e => {setFilterMacro(e.target.value); setFilterModality(''); setFilterDegree('');}}>
                   <option value="">Todas as Instituições (Macro)</option>
                   {[...new Set(students.map(s => s.macro_category).filter(Boolean))].map(m => (
                     <option key={m as string} value={m as string}>{m as string}</option>
                   ))}
                 </select>
-                <select value={filterModality} onChange={e => {setFilterModality(e.target.value); setFilterDegree('');}} style={{padding: '10px', background: '#112240', color: '#CCD6F6', border: '1px solid #233554', borderRadius: '4px'}}>
+                <select value={filterModality} onChange={e => {setFilterModality(e.target.value); setFilterDegree('');}}>
                   <option value="">Todas as Modalidades</option>
                   {[...new Set(students.filter(s => !filterMacro || s.macro_category === filterMacro).map(s => s.modality).filter(Boolean))].map(m => (
                     <option key={m as string} value={m as string}>{m as string}</option>
                   ))}
                 </select>
-                <select value={filterDegree} onChange={e => setFilterDegree(e.target.value)} style={{padding: '10px', background: '#112240', color: '#CCD6F6', border: '1px solid #233554', borderRadius: '4px'}}>
-                  <option value="">Todos os Graus</option>
+                <select value={filterDegree} onChange={e => setFilterDegree(e.target.value)}>
+                  <option value="">Todos os Departamentos / Graus</option>
                   {[...new Set(students.filter(s => (!filterMacro || s.macro_category === filterMacro) && (!filterModality || s.modality === filterModality)).map(s => s.degree).filter(Boolean))].map(m => (
                     <option key={m as string} value={m as string}>{m as string}</option>
                   ))}
                 </select>
              </div>
+
              <div className="dossier-grid">
                 {students.filter(s => (!filterMacro || s.macro_category === filterMacro) && (!filterModality || s.modality === filterModality) && (!filterDegree || s.degree === filterDegree)).map(student => (
-                  <div key={student.id} className="student-card">
-                    <h3 style={{fontSize: '1rem', color: '#00e5ff', margin: '0 0 5px 0'}}>{student.macro_category}</h3>
-                    <p style={{fontSize: '0.8rem', color: '#8892b0', margin: '0 0 15px 0'}}>{student.modality} {'>'} {student.degree}</p>
-                    <div style={{padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px'}}>
-                       <p style={{margin: '0 0 5px 0', fontSize: '0.8rem'}}><strong style={{color: '#64ffda'}}>Tag:</strong> {student.course_tag ? `[${student.course_tag}]` : 'Sem Tag'}</p>
-                       <p style={{margin: '0', fontSize: '0.85rem'}}><strong>Curso:</strong> {student.clean_course_name}</p>
+                  <div key={student.id} className="student-card premium">
+                    <div className="card-top">
+                      <h3 className="category-tag">{student.macro_category}</h3>
+                      <span className="modality-label">{student.modality}</span>
                     </div>
-                    <p style={{marginTop: '15px', fontSize: '0.75rem', color: '#8892b0'}}>Hash: {student.full_name_hash?.substring(0,8)}</p>
+                    <p className="degree-path">{student.degree}</p>
+                    
+                    <div className="course-box">
+                       {student.course_tag && <span className="tag-pill">{student.course_tag}</span>}
+                       <p className="course-name">{student.clean_course_name}</p>
+                    </div>
+
+                    <div className="student-metrics">
+                       <div className="met-row">
+                         <span>Média Geral</span>
+                         <span className="met-val highlight">--</span>
+                       </div>
+                       <div className="met-row">
+                         <span>Status Financeiro</span>
+                         <span className="met-val gray">Pendente Sponte</span>
+                       </div>
+                    </div>
+
+                    <div className="card-footer">
+                       <span>ID: {student.external_id_moodle}</span>
+                       <span className="access-date">Ativo desde: {student.moodle_last_access ? new Date(student.moodle_last_access * 1000).toLocaleDateString() : 'N/A'}</span>
+                    </div>
                   </div>
                 ))}
              </div>
