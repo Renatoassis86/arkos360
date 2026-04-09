@@ -1,0 +1,7 @@
+{
+  "name": "arkos-360-root",
+  "private": true,
+  "scripts": {
+    "vercel-build": "cd dashboard && npm install && npm run build"
+  }
+}
