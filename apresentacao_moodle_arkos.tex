@@ -1,0 +1,486 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+\usetheme{Madrid}
+
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+
+% --- PALETA DE CORES ARKOS (OFICIAL) ---
+\definecolor{ArkosDark}{HTML}{0A0C0F}      
+\definecolor{ArkosCard}{HTML}{111318}      
+\definecolor{ArkosSlate}{HTML}{1F242D}     
+\definecolor{ArkosFog}{HTML}{8A8F99}       
+\definecolor{ArkosPaper}{HTML}{F4F2ED}     
+\definecolor{ArkosGreen}{HTML}{C8F542}     
+
+\setbeamercolor{palette primary}{bg=ArkosDark, fg=ArkosPaper}
+\setbeamercolor{palette secondary}{bg=ArkosCard, fg=ArkosPaper}
+\setbeamercolor{palette tertiary}{bg=ArkosSlate, fg=ArkosPaper}
+\setbeamercolor{palette quaternary}{bg=ArkosDark, fg=ArkosPaper}
+
+\setbeamercolor{structure}{fg=ArkosGreen} 
+\setbeamercolor{background canvas}{bg=ArkosDark}
+\setbeamercolor{normal text}{fg=ArkosPaper}
+\setbeamercolor{title}{fg=ArkosGreen}
+\setbeamercolor{subtitle}{fg=ArkosFog}
+\setbeamercolor{frametitle}{fg=ArkosPaper, bg=ArkosDark}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
+
+\setbeamertemplate{itemize item}{\color{ArkosGreen}$\bullet$}
+\setbeamertemplate{itemize subitem}{\color{ArkosGreen!80}$\circ$}
+\setbeamercolor{itemize/enumerate body}{fg=ArkosPaper}
+\setbeamercolor{description item}{fg=ArkosGreen}
+\setbeamercolor{block title}{bg=ArkosGreen, fg=ArkosDark}
+\setbeamercolor{block body}{bg=ArkosCard, fg=ArkosPaper}
+
+\lstset{
+    backgroundcolor=\color{ArkosCard},
+    basicstyle=\ttfamily\footnotesize\color{ArkosPaper},
+    breaklines=true,
+    keywordstyle=\color{ArkosGreen},
+    stringstyle=\color{cyan},
+    commentstyle=\color{ArkosFog},
+    frame=single,
+    rulecolor=\color{ArkosGreen}
+}
+
+\title[Manual Arkos Intelligence]{Manual Arkos Intelligence}
+\subtitle{Ecossistema CLM \& Business Intelligence para Escolas}
+\author[Renato Silva de Assis]{Renato Silva de Assis}
+\institute[UFPB / ARKOS]{Ciência de Dados para Negócios -- UFPB \\ Plataforma \textbf{ARKOS}}
+\date{Abril de 2025}
+
+\begin{document}
+
+% SLIDE 1: CAPA
+\begin{frame}[plain]
+    \titlepage
+\end{frame}
+
+% ==============================================================================
+% PARTE I: INTRODUÇÃO E AGENDA (3 SLIDES)
+% ==============================================================================
+\section{Introdução}
+
+% SLIDE 2: AGENDA
+\begin{frame}{2. Sumário Executivo e Agenda}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Módulos Abordados,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item \textbf{Módulo 1}: Gestão de Contratos (CLM).
+                    \item \textbf{Módulo 2}: Estudo Preditivo de Risco.
+                    \item \textbf{Módulo 3}: Ingestão & Dashboards Moodle.
+                    \item \textbf{Módulo 4}: Visão de Futuro & NLP.
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=O que esperar deste Manual,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Este documento serve como manual funcional e técnico para toda a estruturação da plataforma ARKOS.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 3: GÊNESE
+\begin{frame}{3. A Gênese do Projeto: De onde viemos?}
+    \begin{itemize}
+        \item \textbf{Diagnóstico inicial}: Contratos gerados em word manualmente, atrasando a captação de rematrículas.
+        \item \textbf{Gargalo de Informação}: Notas presas no cock-pit engessado do Moodle dificultando diagnósticos preventivos.
+        \item \textbf{A Solução}: Dashboard Single-Page capaz de ler, gerir documentos e analisar notas em tempo real.
+    \end{itemize}
+\end{frame}
+
+% ==============================================================================
+% PARTE II: GESTÃO DE CONTRATOS - CLM (8 SLIDES)
+% ==============================================================================
+\section{Gestão de Contratos}
+
+% SLIDE 4: CONCEITO CLM
+\begin{frame}{4. CLM (Contract Lifecycle Management)}
+    \begin{alertblock}{Definição}
+        Gestão do ciclo de vida documental: criação de templates, captura de dados variáveis, disparo de assinaturas e arquivamento auditável.
+    \end{alertblock}
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item Rodando sobre \textbf{Next.js 15} e design Responsivo Dark.
+        \item Conexão robusta com regras de multi-tenant (várias unidades).
+    \end{itemize}
+\end{frame}
+
+% SLIDE 5: PESSOAS
+\begin{frame}{5. CLM Módulo 1: Cadastro de Pessoas e Organizações}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Normalização de Bancos,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item Tabelas Supabase com chaves primárias por CPF.
+                    \item Divisão clara de Alunos, Pais e Fiadores.
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Visão de Dashboard,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Grids de validação rápida para acusar dados em falta antes de emitir o documento e evitar recusas.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 6: TEMPLATES
+\begin{frame}{6. CLM Módulo 2: Criação de Templates Dinâmicos}
+    \begin{itemize}
+        \item \textbf{Variáveis Curadas}: Substituição textual de tags como \texttt{\{\{ALUNO\_NOME\}\}} em tempo de render.
+        \item \textbf{Editor Rich Text}: Permite editar parágrafos e cláusulas jurídicas sem mexer no banco de dados.
+        \item \textbf{Preservação de Versões}: Antigos contratos permanecem imutáveis para compliance judicial.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 7: EMISSAO PDF
+\begin{frame}{7. CLM Módulo 3: Geração e Emissão em Lote}
+    \begin{center}
+    \begin{tikzpicture}[node distance=2.2cm]
+        \node (tmp) [draw=ArkosGreen, fill=ArkosCard, text=ArkosPaper, rectangle, rounded corners] {\textbf{Escolha Modelo}};
+        \node (usr) [right of=tmp, node distance=4cm, draw=ArkosFog, fill=ArkosSlate, text=ArkosPaper, rectangle, rounded corners] {\textbf{Filtra Alunos}};
+        \node (gen) [right of=usr, node distance=4cm, draw=cyan, fill=ArkosSlate, text=ArkosPaper, rectangle, rounded corners] {\textbf{Gera Documentos}};
+        \draw[->, thick, ArkosGreen] (tmp) -- (usr);
+        \draw[->, thick, ArkosGreen] (usr) -- (gen);
+    \end{tikzpicture}
+    \end{center}
+    \vspace{0.2cm}
+    \begin{tcolorbox}[enhanced,title=Agilidade Operacional,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+        Emissão de volumes via Next.js Edge Functions rodando em milissegundos.
+    \end{tcolorbox}
+\end{frame}
+
+% SLIDE 8: ASSINATURA ELETRONICA
+\begin{frame}{8. CLM Módulo 4: Mecanismo de Assinatura Eletrônica}
+    \begin{itemize}
+        \item \textbf{Disparo via Webhook}: Disparo em esteiras de e-mail para os responsáveis legais.
+        \item \textbf{Garantia Legal}: Coleção de Carimbos de IP, geolocalização e hashes para auditoria em conformidade com a ICP-Brasil.
+        \item \textbf{Feedback em Tela}: Barra circular indicando taxa percentual de adesão da turma.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 9: STATUS
+\begin{frame}{9. CLM Módulo 5: Gestão de Status e Re-disparos}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Cores de Status,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item \textcolor{ArkosGreen}{Assinado e Válido}.
+                    \item \textcolor{yellow}{Pendente de Assinatura}.
+                    \item \textcolor{red}{Recusado / Vencido}.
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Ação Reativa,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Disparo de lembrete com apenas 1 clique direto no painel para devedores de rubrica.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 10: FLUXO DE ESTADO
+\begin{frame}{10. Fluxo de Transição de Estado dos Documentos}
+    \begin{center}
+    \begin{tikzpicture}[node distance=2.5cm]
+        \node (p) [draw=ArkosFog, fill=ArkosCard, text=ArkosPaper, circle] {Rascunho};
+        \node (e) [right of=p, draw=yellow, fill=ArkosCard, text=ArkosPaper, circle] {Emitido};
+        \node (s) [right of=e, draw=cyan, fill=ArkosCard, text=ArkosPaper, circle] {Coletando};
+        \node (a) [right of=s, draw=ArkosGreen, fill=ArkosCard, text=ArkosPaper, circle] {\textbf{Assinado}};
+        \draw[->, thick, ArkosGreen] (p) -- (e);
+        \draw[->, thick, ArkosGreen] (e) -- (s);
+        \draw[->, thick, ArkosGreen] (s) -- (a);
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+% SLIDE 11: FRONTEND CLM
+\begin{frame}{11. Resumo Técnico do Frontend do CLM}
+    \begin{itemize}
+        \item Grids organizados via \textbf{Tailwind Flexbox} dinâmico.
+        \item Filtros instantâneos baseados em Regex client-side para não congelar o carregamento da grid de CPFs.
+        \item Botões de ações rápidos para Download de Cópia e Histórico de Acesso.
+    \end{itemize}
+\end{frame}
+
+% ==============================================================================
+% PARTE III: INTELIGÊNCIA DE DADOS - TEORIA (7 SLIDES)
+% ==============================================================================
+\section{Inteligência de Dados}
+
+% SLIDE 12: PROBLEMA TEORICO
+\begin{frame}{12. Introdução: O Risco de Inadimplência na IES}
+    \begin{itemize}
+        \item \textbf{Desafio}: Escolas não podem penalizar alunos pedagogicamente por atrasos no ciclo letivo corrente (Lei 9870/99).
+        \item \textbf{Saúde Financeira}: Manter a IES sustentável exige preditividade de caixa.
+        \item \textbf{Estratégia}: Negociações preventivas antes que o aluno vire um inadimplente consolidado.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 13: LOUCURA CREDIT SCORING
+\begin{frame}{13. Revisão de Literatura: Credit Scoring Escolar}
+    \begin{itemize}
+        \item \textbf{Credit Scoring (Thomas, 2000)}: Atribuir uma nota probabilística de risco a CPFs.
+        \item \textbf{Engagement Factor}: A correlação direta entre queda de notas/frequência e atraso de boletos na mensalidade.
+        \item \textbf{Retorno}: Prevenção automatizada custa frações da judicialização de débitos.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 14: BASE PILOTO
+\begin{frame}{14. Matriz de Dados do Estudo Piloto (Peru Data Benchmark)}
+    \begin{tcolorbox}[enhanced,title=Amostra e Dimensões,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+        \begin{itemize}
+            \item \textbf{Volume}: 37.582 registros (Universidade Superior).
+            \item \textbf{Variáveis Perfil}: Gênero, Faixa Etária, Tipo de Curso.
+            \item \textbf{Variáveis Risco}: Bolsas (Convenio ou nada), Sem Atributos.
+        \end{itemize}
+    \end{tcolorbox}
+\end{frame}
+
+% SLIDE 15: MODELAGEM SUPERVISIONADA
+\begin{frame}{15. Estratégia Empírica: Modelos de Classificação}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \textbf{Resultados F1-Score}:
+            \begin{itemize}
+                \item Naive Bayes $\rightarrow$ 50\%
+                \item KNN $\rightarrow$ 92\%
+                \item Árvores de Decisão $\rightarrow$ 93\%
+                \item \textbf{Regressão Logística} $\rightarrow$ 95.4\%
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Justificativa do Modelo,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Optou-se pela Regressão Logística para garantir a \textbf{interpretação dos coeficientes} transparentes na gestão escolar.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 16: PILOTO COEFS
+\begin{frame}{16. Resultados Piloto: Alavancas e Proteção de Risco}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Sinal de Risco (+),colback=black!30,colframe=red!80,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item \textbf{Curso em Risco}: Coef. -2.91 
+                    \item \textbf{Sem Bolsa de Desconto}: Coef. -1.80
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Sinal de Proteção (+),colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item \textbf{Pago Ano Anterior}: Coef. 9.94
+                    \item \textbf{Reinscrito}: Coef. 1.39
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 17: NAO SUPERVISIONADO
+\begin{frame}{17. Visão Macroscópica: Análise Longitudinal 2019--2023}
+    \begin{itemize}
+        \item \textbf{Clusterização (Ward.D2)}: Avaliar como blocos regionais migraram para o ensino à distância (EaD).
+        \item \textbf{PCA (Componentes Principais)}: Condensar índices de infraestrutura vs. Desempenho discente para ler clusters de eficácia pedagógica.
+        \item \textbf{Conclusão}: Escala no EaD barateia o ticket mas introduz perfis de maior estresse econômico.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 18: POR QUE MOODLE
+\begin{frame}{18. O Sensor de Tempo Real: Por que Moodle?}
+    \begin{alertblock}{Gargalo dos dados estáticos}
+        Variáveis cadastrais não mudam todo dia, o engajamento do aluno sim. Se ele não faz logins ou quizzes, o risco de trancar o curso explode.
+    \end{alertblock}
+    \vspace{0.3cm}
+    Moodle é a fonte de dados vivos necessária para alimentar continuamente um Score de Retenção dinâmico.
+\end{frame}
+
+% ==============================================================================
+% PARTE IV: ENGENHARIA E INTEGRAÇÃO MOODLE (7 SLIDES)
+% ==============================================================================
+\section{Engenharia Moodle}
+
+% SLIDE 19: ARQUITETURA CONECTOR
+\begin{frame}{19. Arquitetura de Conectores API Moodle REST}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Segurança Node,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item \textbf{Server Actions}: Processamento backend para ler endpoints REST nativos.
+                    \item Esconder Tokens do navegador para mitigar roubos.
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Buffer Handler,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Parametrizar rotas por Tenant para responder com dados de cursos dinamicamente.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 20: RECURSAO
+\begin{frame}{20. O Desafio da Árvore: Organograma Recursivo}
+    \begin{itemize}
+        \item Moodle responde em nós aninhados: Categoria Pai $\rightarrow$ Category Filha $\rightarrow$ Subcategorias $\rightarrow$ Turma.
+        \item \textbf{Resgate do Dom}: Função recursiva percorre todos os descendentes para permitir que um filtro de "Faculdade" leia também "Cursos" em subpastas ocultas.
+        \item \textbf{Efeito}: Filtros em cascata perfeitos sem erros de correspondência.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 21: ETL CANO
+\begin{frame}{21. Fluxo de ETL: Sumarização de Nota}
+    \begin{center}
+    \begin{tikzpicture}[node distance=2.2cm]
+        \node (a) [draw=cyan, fill=ArkosCard, text=ArkosPaper, rectangle, rounded corners] {Consome Moodle};
+        \node (b) [right of=a, node distance=3.5cm, draw=ArkosFog, fill=ArkosSlate, text=ArkosPaper, rectangle, rounded corners] {Trata itemtype};
+        \node (c) [right of=b, node distance=3.5cm, draw=ArkosFog, fill=ArkosSlate, text=ArkosPaper, rectangle, rounded corners] {Soma Elementos};
+        \node (d) [right of=c, node distance=3.5cm, draw=ArkosGreen, fill=ArkosCard, text=ArkosPaper, rectangle, rounded corners] {Output Clean};
+        \draw[->, thick, ArkosGreen] (a) -- (b);
+        \draw[->, thick, ArkosGreen] (b) -- (c);
+        \draw[->, thick, ArkosGreen] (c) -- (d);
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+% SLIDE 22: PSEUDO CODIGO
+\begin{frame}[fragile]{22. O Fallback de Soma (Pseudo-Código)}
+    \vspace{0.3cm}
+    \begin{exampleblock}{Código de Agrupamento}
+    \begin{lstlisting}
+if (g.itemtype === "course") {
+    // Garante leitura da nota final compilada pelo professor
+    Media_Final = g.graderaw; 
+} else if (g.itemtype === "mod") {
+    // Cálculo de fallback se a API omitir o valor raiz
+    Total_Notas += g.graderaw;
+}
+    \end{lstlisting}
+    \end{exampleblock}
+\end{frame}
+
+% SLIDE 23: FLATMAP CPFs
+\begin{frame}{23. Organização de Array: Flatmapping de CPFs}
+    \begin{itemize}
+        \item O Moodle por vezes responde um estudante replicado para duas turmas em fluxos diferentes de chamadas.
+        \item \textbf{Eliminação de Duplicados}: Estrutura de Map/Reduce em runtime Next.js fundindo os logs do aluno num único item do buffer final da grid visual.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 24: SAUDE CONEXAO
+\begin{frame}{24. Painel de Auditoria de Saúde da Conexão}
+    \begin{itemize}
+        \item Aba do painel dedicada a disparar um ping de teste enviando os logs brutos para a interface.
+        \item Identificação rápida de Erros de Autenticação 401 ou token expirado antes de alimentar os painéis discentes.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 25: SEGURANÇA ROTAS
+\begin{frame}{25. Isolamento e Segurança de Rotas (Edge)}
+    \begin{itemize}
+        \item Nenhuma chamada à API Moodle é feita via API client side (evita exposição de redes de rede administrativas em dev tools).
+        \item Respostas rápidas por Next server response mitigando gargalos.
+    \end{itemize}
+\end{frame}
+
+% ==============================================================================
+% PARTE V: O EXPLORADOR MOODLE - VISUAIS (4 SLIDES)
+% ==============================================================================
+\section{Explorador Moodle}
+
+% SLIDE 26: ABA 1
+\begin{frame}{26. Interface 1: Visão Estrutural (Aba Geral)}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Métricas Pivot,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item Contadores em tempo real para Cursos Visíveis.
+                    \item Auditoria de Número de Pastas.
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Grids Flat,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Permite auditar IDs e shortnames rapidamente sem ter que exportar planilhas do Moodle.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% SLIDE 27: ABA 2
+\begin{frame}{27. Interface 2: Notas e Alerta Crítico (Aba Notas)}
+    \begin{itemize}
+        \item \textbf{Filtros Inteligentes}: Mapeamento multinível por Faculdade, Curso e Disciplina.
+        \item \textbf{Visão status Alunos}:
+            \begin{itemize}
+                \item \textcolor{ArkosGreen}{Aprovado} ($\ge 7.0$)
+                \item \textcolor{yellow}{Em Curso / Crítico} ($< 7.0$)
+            \end{itemize}
+        \item \textbf{Submódulos Flex}: Cards sanfonados listando as notas fracionadas de questionários de cada aluno.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 28: ABA 3
+\begin{frame}{28. Interface 3: Dados Cadastrais (Aba Cadastro)}
+    \begin{tcolorbox}[enhanced,title=Modulação de Grid Dinâmico,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+        Uma simples troca de contexto troca as colunas para Auditoria demográfica ágil.
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item Render de: Email do Aluno, Telefone cravado no Moodle, Aniversário e Semestre corrente.
+    \end{itemize}
+\end{frame}
+
+% SLIDE 29: ABA 4
+\begin{frame}{29. Interface 4: Ementas e Matriz NLP (Aba Ementas)}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Grid de Ementas,colback=black!30,colframe=ArkosGreen,fonttitle=\bfseries]
+                \begin{itemize}
+                    \item Identificação se o curso possui "Summary" preenchido no Moodle.
+                    \item Badge de Ementa Ativa.
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[enhanced,title=Popup Modal Seções,colback=black!30,colframe=cyan,fonttitle=\bfseries]
+                Exibe carregado as ementas e tópicos com lições programadas que serão aprendidas na turma.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==============================================================================
+% PARTE VI: ENCERRAMENTO (2 SLIDES)
+% ==============================================================================
+\section{Encerramento}
+
+% SLIDE 30: CONCLUSAO
+\begin{frame}{30. Conclusão de Produto e Ganhos ARKOS}
+    \begin{center}
+    \begin{tcolorbox}[enhanced,title=Vantagem ARKOS consolidada,colback=black!30,colframe=ArkosGreen,width=0.85\textwidth,fonttitle=\bfseries]
+        \begin{itemize}
+            \item \textbf{Velocidade}: Emissão contratual 10x mais rápida.
+            \item \textbf{Visibilidade}: Médias e cadastros agrupados sem a complexidade visual do painel administrativo de professores.
+            \item \textbf{Futuro}: Unificar o engagement live com os alertas de inadimplência preventiva do piloto.
+        \end{itemize}
+    \end{tcolorbox}
+    \vspace{0.2cm}
+    \textcolor{ArkosGreen}{\large \textbf{ARKOS: Inteligência de Dados a Serviço da Educação}}
+    \end{center}
+\end{frame}
+
+\end{document}

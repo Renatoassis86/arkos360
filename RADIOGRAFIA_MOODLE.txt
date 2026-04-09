@@ -1,0 +1,329 @@
+================================================================================
+      RADIOGRAFIA ANALÍTICA DE DADOS – MOODLE API (FICV)                     
+      VERSÃO APRIMORADA COM BASE NA DOCUMENTAÇÃO INTERNA DA API              
+================================================================================
+
+1. RESUMO EXECUTIVO APRIMORADO
+--------------------------------------------------------------------------------
+O ambiente Moodle da FICV não oferece apenas dados cadastrais e acadêmicos básicos. A documentação interna mostra que o token atual expõe uma camada ampla de dados em pelo menos seis níveis:
+
+1. Dados mestres estruturados: usuários, cursos, categorias, matrículas, grupos, papéis, badges, eventos, notas, conclusão, calendários, blocos e arquivos.
+2. Dados semiestruturados: customfields, preferences, roles, groups, enrolledcourses, courseformatoptions, warnings, advancedfeatures, plugins, fileareas, editorfields, contents, dates, completiondata.
+3. Dados textuais não estruturados: descrições HTML de curso, textos de fóruns, blogs, tarefas discursivas, feedbacks docentes, conteúdo de workshops, campos de editor e mensagens.
+4. Dados de arquivos e documentos: anexos, URLs de download, mimetype, tamanho, data de modificação, arquivos externos e áreas de arquivos.
+5. Dados de engajamento e jornada: lastaccess, timeaccess, progress, hasprogress, isfavourite, overdue, completiondata, actionable, itens recentemente acessados.
+6. Dados de governança técnica do próprio serviço: lista de funções habilitadas, capacidade de upload/download, quota, tamanho máximo de upload, sessões concorrentes, política aceita, homepage do usuário e chave privada de acesso a arquivos.
+
+Conclusão executiva: o Moodle da FICV já está em um patamar em que a integração com seu sistema pode ir muito além de “cadastro + nota”. Dá para modelar uma base analítica institucional com dimensões de aluno, curso, professor, atividade, calendário, documentos, interações textuais, trilhas, badges, risco acadêmico e evidências documentais.
+
+2. CORREÇÕES E APRIMORAMENTOS DO RELATÓRIO ORIGINAL
+--------------------------------------------------------------------------------
+
+2.1. O item “dados estruturados” estava subestimado
+
+O relatório inicial focou em id, fullname, email, cpf, semestre e media_geral. Isso é válido, mas a documentação mostra muito mais campos estruturados úteis.
+
+USUÁRIOS
+Além de id, username, firstname, lastname, fullname e email, a API também pode retornar:
+- address
+- phone1, phone2
+- department
+- institution
+- idnumber
+- interests
+- firstaccess
+- lastaccess
+- auth
+- suspended
+- confirmed
+- lang
+- calendartype
+- theme
+- timezone
+- mailformat
+- trackforums
+- description
+- descriptionformat
+- city
+- country
+- profileimageurlsmall
+- profileimageurl
+
+CURSOS E CALENDÁRIO
+O ecossistema de cursos e eventos também traz:
+- startdate, enddate
+- visible
+- showactivitydates
+- showcompletionconditions
+- pdfexportfont
+- fullnamedisplay
+- viewurl
+- courseimage
+- progress
+- hasprogress
+- isfavourite
+- hidden
+- timeaccess
+- showshortname
+- coursecategory
+- overdue
+- formattedtime
+- formattedlocation
+- normalisedeventtype
+- normalisedeventtypetext
+- purpose
+- branded
+
+3. NOVAS CLASSES DE DADOS QUE O RELATÓRIO DEVE INCORPORAR
+--------------------------------------------------------------------------------
+
+3.1. Metadados do próprio token e do ambiente
+
+A função core_webservice_get_site_info é mais estratégica do que parecia. Ela não só lista funções; ela informa:
+- sitename, username, userid, siteurl, functions
+- downloadfiles, uploadfiles, release, version
+- mobilecssurl, advancedfeatures, usercanmanageownfiles
+- userquota, usermaxuploadfilesize, userhomepage, userhomepageurl
+- userprivateaccesskey, siteid, sitecalendartype, usercalendartype
+- userissiteadmin, theme, limitconcurrentlogins
+- usersessionscount, policyagreed
+
+IMPLICAÇÃO PARA INTEGRAÇÃO: Diagnóstico completo do robô, ETL e automação documental.
+
+3.2. Dados semiestruturados de perfil são mais ricos do que CPF
+
+A documentação confirma que customfields não é um único campo, mas lista objetos de definição e valor. Permite criar ETL genérico que captura qualquer novo campo criado no Moodle FICV.
+
+3.3. Tarefas discursivas com mais variáveis
+
+Submissões trazem status de correção, anexos, estrutura por plugin, indicadores de atraso e bloqueio (`editorfields`de `text` e `format`). Excelente para Auditoria e Modelos de Risco.
+
+3.4. Eventos e calendário trazem sinais analíticos prontos
+
+ Flags como overdue, isactionevent, formattedtime. Permite criar Painel de Prazos e Monitor de Atrasos.
+
+3.5. Conteúdo do curso tem estrutura de completion e datas
+
+Dados de status (`completiondata`), datas de check e motivos de conclusão. Modelagem de trilha acadêmica progressiva.
+
+3.6. blogs, fóruns e blocos ampliam a parte não estruturada
+
+Blogs, config JSON de blocos, taxonomias e tags ampliando a mineração de texto.
+
+4. NOVA TAXONOMIA RECOMENDADA PARA O RELATÓRIO
+--------------------------------------------------------------------------------
+
+A. Estruturado puro: IDs, nomes, datas, flags, números, status.
+B. Estruturado relacional enriquecido: Papéis, grupos, matrículas, badges, calendários.
+C. Semiestruturado aninhado: customfields, preferences, plugins, configs.
+D. Não estruturado textual: summary, content, editorfields.text, posts, mensagens.
+E. Não estruturado documental/binário: Arquivos, anexos, imagens, links de download.
+
+5. RECOMENDAÇÕES DE ETL MAIS FORTES
+--------------------------------------------------------------------------------
+
+5.1. Arquitetura em 4 camadas:
+- CAMADA 1: RAW INGESTION (JSON Bruto)
+- CAMADA 2: STAGING NORMALIZADA (Explosão de Arrays e Semiestruturados)
+- CAMADA 3: CORE RELACIONAL (users, courses, enrolments, calendar, files)
+- CAMADA 4: ANALYTICS / MARTS (fact_engagement, fact_grade, fact_calendar, dim_user, dim_course)
+
+5.2. Preservar HTML e Criar Texto Limpo: Armazenar `*_raw` e `*_plain_text`.
+5.3. Estratégia Formal para Arquivos: Catálogo com hash/assinatura, mimetype, política de download.
+
+6. RECOMENDAÇÕES NOVAS DE CIÊNCIA DE DADOS
+--------------------------------------------------------------------------------
+
+6.1. Modelos preditivos: Risco de Inadimplência acadêmica (Atas de submissão + ausências), Score de Engajamento Multimodal e Learning Analytics nativo.
+6.2. NLP: Aplicar em posts, fóruns, respostas discursivas e feedback docente para análise de sentimento e clustering semântico.
+
+7. GAPS QUE PRECISAM ENTRAR NO RELATÓRIO
+--------------------------------------------------------------------------------
+
+- Capacidade Massiva: Moodle 425 funções tem chamadas voltadas para UI, exigindo cuidado no bulk download.
+- LGPD: Cuidado com dados sensíveis em feedbacks docentes e redações.
+- Custo Computacional: Equilibrar Snapshots e Sync Reativo por Evento.
+
+8. CONCLUSÃO APRIMORADA
+--------------------------------------------------------------------------------
+
+A documentação interna da API do Moodle da FICV demonstra que o ambiente expõe mais do que dados cadastrais tradicionais. A integração deve ser concebida em arquitetura multicamadas, contemplando tratamento de semiestruturas e governança documental. O ecossistema já oferece insumos suficientes para dashboards acadêmicos e analíticos avançados.
+
+
+
+================================================================================
+       APÊNDICES TÉCNICOS (MAPEAMENTO COMPLETO DE VARIÁVEIS)                 
+================================================================================
+
+================================================================================
+          DICIONÁRIO DE DADOS DAS APIS PRINCIPAIS (DATA DICTIONARY)               
+================================================================================
+
+Abaixo está o mapeamento de variáveis de retorno para os endpoints fundamentais.
+Como o Moodle não expõe um schema dinâmico via REST para todas as 425 funções, 
+este dicionário foca nas 4 Pilares de Ingestão (Usuários, Cursos, Notas, Matrículas).
+
+📘 PILAR 1: GESTÃO DE USUÁRIOS (User APIs)
+--------------------------------------------------------------------------------
+Endpoint Sugerido: `core_user_get_users_by_field` ou `core_user_get_users`
+
+| Campo (Key) | Tipo | Descrição | Processo ETL / Tratamento |
+| :--- | :--- | :--- | :--- |
+| `id` | Int | ID sequencial único do usuário no Moodle FICV. | Converter para `moodle_id` (Chave Estrangeira no Supabase) |
+| `username` | String | ID de Login (ex: CPF, Matrícula Institucional). | Sanitizar para lowercase para garantir unicidade. |
+| `firstname` | String | Primeiro nome registrado. | Concatenar com lastname se o sistema destino usar Nome Completo. |
+| `lastname` | String | Sobrenome registrado. | - |
+| `email` | String | E-mail institucional ou pessoal. | Lowercase + Validação de Regex de e-mail p/ evitar falhas de webhook. |
+| `idnumber` | String | Campo livre para matrícula externa. | Pode estar vazio. Usar CPF como backup alternativo. |
+| `department` | String | Departamento ou ciclo. | Atributo categórico. |
+| `customfields` | Array | **[SEMIESTRUTURADO]** Lista de campos personalizados. | **EXIGE LOOP**: Filtrar por shortname=`cpf` para extrair CPF limpo. |
+| `preferences` | Array | Preferências do perfil do usuário. | Geralmente irrelevante para CRM, mas útil para logs de UI. |
+
+📘 PILAR 2: GESTÃO DE CURSOS E CATEGORIAS (Course APIs)
+--------------------------------------------------------------------------------
+Endpoint Sugerido: `core_course_get_courses` ou `core_course_get_categories`
+
+| Campo (Key) | Tipo | Descrição | Processo ETL / Tratamento |
+| :--- | :--- | :--- | :--- |
+| `id` | Int | ID sequencial único da disciplina/curso. | Chave primária de Curso no Supabase. |
+| `fullname` | String | Nome completo da disciplina (ex: Ética Cristã). | Manter String original. |
+| `shortname` | String | Nome curto (Cód. de Turma ou disciplina). | Útil para chaves de agrupamento (Tags). |
+| `categoryid` | Int | FK da Categoria (ex: Graduação, Pós, etc). | Usar para fazer Join com `get_categories` no dashboard. |
+| `summary` | HTML | Ementa ou descrição aberta do curso. | **NÃO ESTRUTURADO**: Fazer strip_tags() se quiser texto puro. |
+| `startdate` | Unix | Timestamp de início. | **CASTING**: `new Date(val * 1000)` para ISO String. |
+| `enddate` | Unix | Timestamp de fim. | **CASTING**: `new Date(val * 1000)` para ISO String. |
+| `visible` | Int (0/1) | Status de publicação (Ativo/Oculto). | Map para boolean (true/false). |
+
+📘 PILAR 3: DESEMPENHO ACADÊMICO (Gradebook APIs)
+--------------------------------------------------------------------------------
+Endpoint Sugerido: `gradereport_user_get_grade_items`
+
+| Campo (Key) | Tipo | Descrição | Processo ETL / Tratamento |
+| :--- | :--- | :--- | :--- |
+| `userid` | Int | ID do aluno. | Linkar com tabela central de alunos. |
+| `courseid` | Int | ID do curso associado à nota. | - |
+| `itemname` | String | Nome da atividade (ex: Quiz 1, Prova Final). | Filtrar p/ excluir 'Category Total' se quiser médias brutas. |
+| `itemtype` | String | 'course', 'category' ou 'mod' (Atividade). | Se for 'course', é a média final da disciplina. |
+| `graderaw` | Float | Avaliação numérica bruta. | Calcular `(graderaw / grademax) * 10` se quiser normalizar escala 0-10. |
+| `grademax` | Float | Teto de pontuação do item. | Geralmente 100.0 ou 10.0. |
+| `percentage`| String | Nota em formato percentual (ex: "85.00 %"). | Converter para float (substituir '%' por vazio). |
+
+📘 PILAR 4: MATRÍCULAS E GRUPOS (Enrolment APIs)
+--------------------------------------------------------------------------------
+Endpoint Sugerido: `core_enrol_get_enrolled_users` ou `core_enrol_get_users_courses`
+
+| Campo (Key) | Tipo | Descrição | Processo ETL / Tratamento |
+| :--- | :--- | :--- | :--- |
+| `id` | Int | ID do usuário. | FK com central de alunos. |
+| `roles` | Array | Lista de cargos (Student, Teacher, Manager). | **DIAGNÓSTICO**: Fundamental para identificar o "Professor". |
+| `roles.shortname` | String | Cód do cargo (ex: 'student', 'editingteacher').| Filtrar 'editingteacher' para extrair Docente Atribuído. |
+
+
+
+================================================================================
+          MELHOR ARQUITETURA DE INTEGRAÇÃO INDICADA                             
+================================================================================
+
+Com base nas orientações de WebServices do Moodle, a melhor arquitetura para o seu sistema é:
+
+**🏆 ARQUITETURA HÍBRIDA (Pull-based via REST + Push-Events)**
+
+1. **Sincronização Periódica Incremental (REST API - Pull)**
+   - **Indicação**: Coleta de dados volumosos (Notas de turmas inteiras, Atualização cadastral).
+   - **Como funciona**: Loops de lotes (Pagination) usando `core_enrol_get_enrolled_users` 
+     puxando novos dados a cada 1 hora para inserir com trigger UPSERT no Supabase.
+   - **Vantagem**: Menos acoplado, tolerante a falhas rápidas na conexão, fácil de debugar.
+
+2. **Gatilhos Reativos (Event Monitoring / Webhooks - Push)**
+   - **Indicação**: Disparos instantâneos (ex: Aluno concluiu o Curso -> Gerar Contrato/Certificado).
+   - **Como funciona**: Configurar o Moodle FICV para disparar requisição POST p/ webhook `/api/moodle/completed` 
+     do seu sistema destino no evento `course_completed`.
+   - **Vantagem**: Reduz o tráfego de pooling de APIs e entrega tempo-real em operações críticas.
+
+### Resumo do Próximo Passo do Desenvolvedor:
+Construir o CronJob para rodar a Server Action `syncAllMoodleData` (já mapeada nas configs de backend) 
+usando Paginação via loops de ID de curso para evitar estouro de memória e rate-limit.
+
+
+
+
+
+================================================================================
+       DICIONÁRIO SEMÂNTICO E CAPACIDADES DE TODAS AS CATEGORIAS DE API             
+================================================================================
+
+Esta seção descreve a capacidade de informação de **todas as famílias de APIs** 
+habilitadas no token da FICV, permitindo mapear o potencial de cada endpoint.
+
+| Família de API | Descrição das Informações que Traz | Estrutura de Retorno (Campos Típicos) | Valor Analítico / Negócio |
+| :--- | :--- | :--- | :--- |
+| **CORE_BADGES** (3 func) | Retorna metadados de medalhas (badges) conquistadas por usuários. | id, name, description, imageurl, dateissued. | Gamificação e certificados. |
+| **CORE_BLOG** (7 func) | Lista postagens de blog internas do Moodle. | id, module, userid, subject, summary, format. | Análise de posts. |
+| **CORE_CALENDAR** (15 func) | Eventos do calendário institucional e do curso. | id, name, description, timestart, timeduration, eventtype. | Séries temporais de prazos. |
+| **CORE_COMMENT** (3 func) | Comentários em posts ou feedbacks. | id, content, format, timecreated, userid. | NLP / Satisfação. |
+| **CORE_COMPLETION** (4 func) | Status de conclusão de atividades (booleanos e datas). | courseid, userid, statuses (array de id, completionstate). | Tracking progressivo. |
+| **CORE_COURSE** (16 func) | Metadados estruturais de Cursos e Áreas. | id, fullname, categoryid, visible, summary. | Chaves relacionais. |
+| **CORE_ENROL** (4 func) | Lista vínculos de matrículas (Enrollments). | userid, courseid, roles, timestart, timeend. | Contratos e Frequência. |
+| **CORE_FILES** (3 func) | Gestão e links de arquivos anexados (PDFs, Docs). | fileid, filename, filepath, filesize, fileurl. | Coleta de documentos. |
+| **CORE_GET** (1 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **CORE_GROUP** (6 func) | Lista de grupos e agrupamentos de alunos. | id, courseid, name, description, members_count. | Segmentação de coortes. |
+| **CORE_MESSAGE** (41 func) | Conversas diretas e notificações de sistema. | id, useridfrom, subject, fullmessage, timecreated. | NLP e Comunicação. |
+| **CORE_NOTES** (4 func) | Notas administrativas (observações) sobre o aluno. | id, courseid, userid, content, format. | Observações de Docente. |
+| **CORE_QUESTION** (1 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **CORE_RATING** (2 func) | Avaliações dadas a posts ou feedbacks. | itemid, scaleid, rating, userid. | Scoring de engajamento. |
+| **CORE_TAG** (5 func) | Tags de taxonomia aplicadas a cursos/disciplinas. | id, name, rawname, tagid. | Agrupamento temático. |
+| **CORE_USER** (16 func) | Perfis completos de usuário incluindo CustomFields. | id, username, email, customfields (CPF, Nascimento). | Cadastro Central. |
+| **CORE_COMPETENCY** (9 func) | Lista competências ligadas ao plano de aprendizagem. | id, shortname, description, idnumber. | Trilha acadêmica. |
+| **CORE_WEBSERVICE** (1 func) | Metadados do próprio token. | siteid, username, functions. | Diagnóstico. |
+| **CORE_BLOCK** (3 func) | Blocos dispostos na interface (Dashboard). | id, blockname, region, weight. | Estrutura visual. |
+| **CORE_FILTERS** (2 func) | Filtros aplicados ao conteúdo (LaTeX, etc). | filter, localstate, inheritedstate. | Compatibilidade. |
+| **MODULE_ASSIGN** (24 func) | Tarefas e submissões com upload. | id, course(id), assignments (array com id, name, allowsubmissions). | Certificação e notas. |
+| **MODULE_BOOK** (2 func) | Livros e recursos de leitura. | id, name, summary, intro, introformat. | Dados de conteúdo. |
+| **MODULE_CHOICE** (6 func) | Enquetes de Escolha Simples. | id, name, intro, options (array de id, text). | Feedback rápido. |
+| **MODULE_DATA** (11 func) | Bancos de dados internos (atividades). | id, name, comments, fields (array de id, name). | ETL customizado. |
+| **MODULE_FEEDBACK** (14 func) | Formulários de feedback (Questionários). | id, name, intro, anonymous. | NPS / Satisfação do Aluno. |
+| **MODULE_FOLDER** (2 func) | Diretórios de arquivos agrupados. | id, name, readme, intro. | Repositório. |
+| **MODULE_FORUM** (17 func) | Discussões e posts de fóruns. | id, name, type, intro, discussions (array de id, name, message). | Mineração de texto (NLP). |
+| **MODULE_GLOSSARY** (18 func) | Dicionários de termos (Glossário). | id, name, intro, entries (id, concept, definition). | Base de conhecimento. |
+| **MODULE_IMSCP** (2 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **MODULE_LABEL** (1 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **MODULE_LESSON** (17 func) | Trilhas de Lições estruturadas. | id, course, name, practice, usepassword. | Trilha de aprendizagem. |
+| **MODULE_LTI** (3 func) | Ferramentas externas (LTI - ex: Zoom). | id, course, name, toolurl, securetoolurl. | Integração vídeo. |
+| **MODULE_PAGE** (2 func) | Páginas de texto estático no curso. | id, name, intro, content, contentformat. | Texto estruturado. |
+| **MODULE_QUIZ** (19 func) | Provas e Quizzes. | id, course, name, intro, timeopen, timeclose, attempts (int), sumgrades. | Dashboard de nota final. |
+| **MODULE_RESOURCE** (2 func) | Arquivos e links simples. | id, name, intro, introformat, tobemoved. | Conteúdo. |
+| **MODULE_SCORM** (9 func) | Pacotes SCORM (Aulas interativas). | id, course, name, intro, version, maxgrade. | Desempenho granular. |
+| **MODULE_URL** (2 func) | Links externos (URLs). | id, course, name, intro, externalurl. | Indexação. |
+| **MODULE_WIKI** (10 func) | Wikis colaborativas de alunos. | id, course, name, intro, firstpagetitle. | Texto colaborativo. |
+| **MODULE_WORKSHOP** (19 func) | Atividades de avaliação por pares. | id, course, name, intro, phase, useexamples. | Ciclo de notas avançado. |
+| **ENROL_GUEST** (2 func) | Método de acesso visitante (sem login). | instance_info, password_needed. | Segurança. |
+| **ENROL_SELF** (2 func) | Automátricula do aluno. | instance_info, enrolment_key_needed. | Trilha de acesso. |
+| **MESSAGE_AIRNOTIFIER** (4 func) | Configurações de notificações push (Apps). | userdevices (array de id, name, model). | Log de dispositivos. |
+| **MESSAGE_POPUP** (2 func) | Alertas popup de tela. | notifications (id, subject, contexturl). | Logs de atenção. |
+| **BLOCK_RECENTLYACCESSEDITEMS** (1 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **BLOCK_STARREDCOURSES** (1 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **GRADES_REPORT** (8 func) | Visões e tabelas de notas do Gradebook. | usergrades (array de courseid, userid, gradeitems). | BI de Notas consolidado. |
+| **TOOL_DATAPRIVACY** (5 func) | Pedidos de GDPR/LGPD. | requests (id, userid, type, status). | Governança de Dados. |
+| **TOOL_LP** (8 func) | Dados de Learning Plans. | id, name, description, status. | Desenvolvimento de trilhas. |
+| **TOOL_MOBILE** (8 func) | Configs para App Mobile. | plugins_config, autologin_key. | Mobile Analytics. |
+| **MODULE_BIGBLUEBUTTONBN** (10 func) | Webconferências (BigBlueButton). | id, course, name, meetingid, recordings. | Histórico de Assiduidade. |
+| **GRADES_CORE** (8 func) | Gatos de painéis de graduação. | grade_items, user_grades. | Desempenho granular. |
+| **CORE_H5P** (1 func) | Arquivos H5P interativos. | id, pathname, filename. | Interação rica. |
+| **CORE_TABLE** (1 func) | Tabelas dinâmicas renderizadas. | html, totalrows. | Views pré-prontas. |
+| **CORE_XAPI** (6 func) | Geração de statements xAPI (TinCan). | success (boolean). | Big Data / Learning Analytics. |
+| **MODULE_H5PACTIVITY** (7 func) | Relatório de tentativas H5P. | attempts (id, h5pactivityid, userid, scaledscore). | Nota de interações. |
+| **REPORT_INSIGHTS** (1 func) | Disparos de predições de IA do Moodle. | insights (array). | Preditor de churn nativo. |
+| **TOOL_ANALYTICS** (1 func) | Descrição genérica de module/core API. Retorna listagem de itens relativos ao módulo. | Campos estruturais diversos | Mapeamento genérico |
+| **TOOL_MOODLENET** (2 func) | Compartilhamento com MoodleNet. | webfinger_info. | Compartilhamento. |
+| **CORE_REPORTBUILDER** (5 func) | Construtor de relatórios customizados. | reports (id, name), report_content (rows). | BI Próprio customizado. |
+| **CORE_MY** (1 func) | Visão da página 'Meu Moodle'. | blocks, items. | Experiência do Aluno. |
+| **CORE_SEARCH** (4 func) | Resultados de busca textual indexada. | results (id, title, content, url). | Indexador documental. |
+| **CORE_AI** (2 func) | Políticas de IA / Copilot interno. | status (boolean). | Logs de IA. |
+| **AIPLACEMENT_COURSEASSIST** (2 func) | Assistentes de texto (resumos). | text_summary (string). | Sumarização de materiais. |
+| **AIPLACEMENT_EDITOR** (2 func) | Geração de imagens/texto por IA. | generated_url / generated_text. | Assets dinâmicos. |
+| **TOOL_POLICY** (2 func) | Status de Aceite de Termos de Uso. | acceptances (id, policyid, status). | Jurídico / Contratos. |
+| **TINY_PREMIUM** (1 func) | Ativação de Editores de Texto. | api_key. | Licenciamento. |
+| **EDITOR_TINY** (1 func) | Configurações de editores de texto. | config_options. | UI Config. |
+| **MODULE_QUESTIONNAIRE** (1 func) | Feedback em formato Checklist/Questionnaire. | responses (array). | Pesquisas acadêmicas. |
+
+*Nota: Conforme regido pela arquitetura do Moodle, o campo `id` sempre representa a chave primária da entidade, e campos terminados em `date`, `time` ou `timestamp` trazem contagem Unix.*

@@ -1,0 +1,69 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{geometry}
+
+\geometry{a4paper, margin=2.5cm}
+
+\title{\textbf{Radiografia e Manual de Integração da API do Moodle (FICV)}}
+\author{Plataforma ARKOS}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução e Visão Geral}
+Este documento apresenta o mapeamento definitivo das variáveis estruturadas, os desafios de dados não estruturados, e os processos de ETL (Extract, Transform, Load) necessários para garantir a máxima usabilidade da integração Moodle com o ecossistema ARKOS, visando a construção de séries temporais e suporte à decisão gerencial acadêmica.
+
+\section{Dados Estruturados e Extração Direta}
+Os seguintes campos são obtidos de fontes relacionais nativas do Moodle e estão PRONTOS para persistência direta em tabelas como \texttt{dados\_moodle\_cursos} no Supabase:
+
+\vspace{0.3cm}
+\begin{table}[htbp]
+  \centering
+  \caption{Mapeamento de Variáveis Estruturadas}
+    \begin{tabular}{lll}
+    \toprule
+    \textbf{Variável} & \textbf{Tipo de Dado} & \textbf{Origem Moodle (API / DB)} \\
+    \midrule
+    \texttt{id} & Integer & Core User Index \\
+    \texttt{fullname} & String & \texttt{core\_enrol\_get\_enrolled\_users} \\
+    \texttt{email} & String (Email) & \texttt{core\_enrol\_get\_enrolled\_users} \\
+    \texttt{cpf} & String (Regex) & \texttt{customfields} (EAD Profiles) \\
+    \texttt{semestre} & String (Ex: 2024.1) & \texttt{customfields} (EAD Profiles) \\
+    \texttt{media\_geral} & Float & Gradebook Aggregate (\texttt{graderaw}) \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Dados Não Estruturados e Processo de ETL}
+Algumas variáveis cruciais vêm em formatos híbridos (strings mistas ou dados aninhados), exigindo tratamentos específicos de \textbf{Regex} e \textbf{Splitting}:
+
+\begin{itemize}
+    \item \textbf{Notas Descritivas (\texttt{notas\_disciplinas})}:
+    \begin{itemize}
+        \item \textit{Formato Atual}: String composta (Ex: ``Módulo 1: 9.5 | Módulo 2: 7.0'').
+        \item \textit{Ajuste ETL}: Fazer o split pelo caractere ``|'' e utilizar Expressor Regular para extrair [Nome\_Modulo, Nota] em um \textit{JSONB} ou tabela auxiliar de histórico mensal.
+    \end{itemize}
+    \item \textbf{Papéis (Professor vs Aluno)}:
+    \begin{itemize}
+        \item \textit{Desafio}: A API de incritos traz todos os cargos em uma lista flat.
+        \item \textit{Ajuste ETL}: É fundamental filtrar os registros na camada de serviço (Back-End) onde \texttt{roles.shortname == 'editingteacher'} para preencher a variável de DOCENTE.
+    \end{itemize}
+\end{itemize}
+
+\section{Geração de Séries Temporais para Decisão}
+Com o ETL estruturado, os dados podem ser utilizados para previsões analíticas:
+
+\begin{enumerate}
+    \item \textbf{Análise de Churn / Evasão}: Alunos que constam como ``Em Curso'' mas não possuem inserção de novas notas nos últimos 45 dias geram Score de Risco para a instituição.
+    \item \textbf{Janela Histórica}: O Moodle não impõe limitação de datas na listagem. Dados cobrem todo o histórico FICV, permitindo agrupar aprovações por Semestre e Categoria.
+    \item \textbf{Docência Criativa}: Correlacionar a média geral de turmas à variáveis como Titulação do professor (cadastrada em custom fields) para avaliar impacto do docente na taxa de aprovação.
+\end{enumerate}
+
+\section{Conclusão}
+A integração está estruturada para consumo analítico. Recomenda-se a ativação de um Cron automatizado para povoar o Supabase de forma incremental a cada hora, sustentando painéis de BI em tempo real.
+
+\end{document}
