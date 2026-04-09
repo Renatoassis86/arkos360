@@ -1,8 +1,22 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Node
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode
+.idea
+.DS_Store
+
+# Python & Backend
 venv/
 __pycache__/
 *.pyc
-dashboard/node_modules/
-dashboard/dist/
 .env
 tmp/
-.vscode/
